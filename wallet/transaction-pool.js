@@ -1,72 +1,56 @@
+//https://medium.com/coinmonks/part-7-implementing-blockchain-and-cryptocurrency-with-pow-consensus-algorithm-bf9a16063ec1
 const Transaction = require('./transaction');
 
-class TransactionPool{
-    constructor(){
-        // represents a collections of transactions in the pool
+class TransactionPool {
+    constructor() {
         this.transactions = [];
     }
 
-    /** 
-     * this method will add a transaction
-     * it is possible that the transaction exists already
-     * so it will replace the transaction with the new transaction
-     * after checking the input id and adding new outputs if any
-     * we call this method and replace the transaction in the pool
-     */
-    updateOrAddTransaction(transaction){
-        // get the transaction while checking if it exists
+    updateOrAddTransaction(transaction) {
+        console.log("transaction-pool.updateOrAddTransaction(...)");
         let transactionWithId = this.transactions.find(t => t.id === transaction.id);
-
-        if(transactionWithId){
+        if (transactionWithId) { //transaction exists in pool, update it with new instance
+            console.log("Transaction exists in pool, update it with new instance")
             this.transactions[this.transactions.indexOf(transactionWithId)] = transaction;
         }
-        else{
+        else {
+            console.log("Add new transactions")
             this.transactions.push(transaction);
         }
     }
 
-    /**
-     * returns a existing transaction from the pool
-     * if the inputs matches
-     */
-
-    existingTransaction(address){
+    existingTransaction(address) {
         return this.transactions.find(t => t.input.address === address);
     }
-    
-    /**
-     * sends valid transactions to the miner
-     */
 
-    validTransactions(){
+    validTransactions() {
         /**
-         * valid transactions are the one whose total output amounts to the input
+         * valid transactions are the ones whose total output amounts to the input
          * and whose signatures are same
          */
-        return this.transactions.filter((transaction)=>{
-            
+        return this.transactions.filter((transaction) => {
             // reduce function adds up all the items and saves it in variable
             // passed in the arguments, second param is the initial value of the 
             // sum total
-
-            const outputTotal = transaction.outputs.reduce((total,output)=>{
+            const outputTotal = transaction.outputs.reduce((total, output) => {
                 return total + output.amount;
-            },0)
-            if( transaction.input.amount !== outputTotal ){
-                console.log(`Invalid transaction from ${transaction.input.address}`);
+            }, 0);
+            if (transaction.input.amount !== outputTotal) {
+                console.log(`Invalid transaction from ${transaction.input.address}! 
+                    input.amount ${transaction.input.amount} != outputTotal ${outputTotal}`);
                 return;
             }
 
-            if(!Transaction.verifyTransaction(transaction)){
-                console.log(`Invalid signature from ${transaction.input.address}`);
+            if (!Transaction.verifyTransaction(transaction)) {
+                console.log(`Invalid signature from ${transaction.input.address}!`);
                 return;
             }
-
             return transaction;
-        })
+        });
     }
 
-    clear(){
+    clear() {
+        console.log("transaction-pool.clear()");
         this.transactions = [];
     }
 }
